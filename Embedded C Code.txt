@@ -1,0 +1,82 @@
+#include <Wire.h> 
+#include <LiquidCrystal_I2C.h>
+
+LiquidCrystal_I2C lcd(0x20, 16, 2); // LCD ekranın adresi ve boyutu
+
+int trigger_pin = 2;
+int echo_pin = 3;
+int buzzer_pin = 10; 
+int led1_pin = 6; // LED1 dijital pin tanımlaması
+int led2_pin = 7; // LED2 dijital pin tanımlaması
+int led3_pin = 8; // LED3 dijital pin tanımlaması
+long time;
+float distance, previous_distance;
+float speed;
+unsigned long previous_time;
+
+void setup() 
+{
+    Serial.begin(9600); 
+    pinMode(trigger_pin, OUTPUT); 
+    pinMode(echo_pin, INPUT);
+    pinMode(buzzer_pin, OUTPUT);
+    pinMode(led1_pin, OUTPUT); // LED1 pin modu ayarlanması
+    pinMode(led2_pin, OUTPUT); // LED2 pin modu ayarlanması
+    pinMode(led3_pin, OUTPUT); // LED3 pin modu ayarlanması
+    
+    lcd.init(); // LCD ekranını başlat
+    lcd.backlight(); // LCD arka ışığını aç
+    lcd.display();
+    
+    previous_distance = 0;
+    previous_time = millis();
+}
+
+void loop() 
+{
+    unsigned long current_time = millis();
+    float time_difference = (current_time - previous_time) / 1000.0; // seconds
+    
+    if (time_difference >= 0.2) { // Check if at least 0.2 seconds have passed
+        previous_time = current_time; // Update previous_time
+        
+        lcd.setCursor(0, 0); // LCD imleci başlangıç konumuna taşı
+        lcd.print("Speed: "); // Başlangıç mesajını yazdır
+        
+        digitalWrite(trigger_pin, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(trigger_pin, LOW);
+        time = pulseIn(echo_pin, HIGH);
+        distance = (time * 0.034) / 2;
+        
+        speed = abs((distance - previous_distance) / time_difference); // cm/s
+        speed = (speed * 3600) / 100000; // Convert cm/s to km/h
+        
+        lcd.setCursor(7, 0); // Hız değerini yazdırmak için imleci hareket ettir
+        lcd.print("       "); // Eski hız değerini temizle
+        lcd.setCursor(7, 0); // Hız değerini yazdırmak için imleci hareket ettir
+        lcd.print(speed); // Hız değerini LCD ekranına yazdır
+        lcd.print(" km/h");
+        
+        previous_distance = distance; // Update previous_distance
+        
+        // LED ve Buzzer durumlarını hız eşiğine göre kontrol et
+        if (speed >= 5 && speed < 10) {
+            tone(buzzer_pin, 150); // 150 Hz frekansta ses çal
+            digitalWrite(led1_pin, HIGH); // LED1'i yak
+        } else if (speed >= 10 && speed < 15) {
+            tone(buzzer_pin, 300); // 300 Hz frekansta ses çal
+            digitalWrite(led2_pin, HIGH); // LED2'yi yak
+        } else if (speed >= 15) {
+            tone(buzzer_pin, 500); // 500 Hz frekansta ses çal
+            digitalWrite(led3_pin, HIGH); // LED3'ü yak
+        } else {
+            noTone(buzzer_pin); // Buzzer'ı durdur
+            digitalWrite(led1_pin, LOW); // LED1'i söndür
+            digitalWrite(led2_pin, LOW); // LED2'yi söndür
+            digitalWrite(led3_pin, LOW); // LED3'ü söndür
+        }
+    }
+    
+    delay(10); // Small delay to prevent excessive CPU usage
+}

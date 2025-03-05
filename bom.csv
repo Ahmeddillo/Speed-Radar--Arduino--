@@ -1,0 +1,9 @@
+﻿Ad,Miktar,Bileşen
+"U1",1," Arduino Uno R3"
+"DIST1",1," Ultrasonik Mesafe Sensörü (4 pinli)"
+"PIEZO1",1," Piezo"
+"D1",1,"Yeşil LED"
+"D2, D4",2,"Kırmızı LED"
+"D3",1,"Sarı LED"
+"R1, R2, R3",3,"330 Ω Direnç"
+"Ulcd_1",1,"PCF8574-tabanlı, 32 (0x20) LCD 16 x 2 (I2C)"
